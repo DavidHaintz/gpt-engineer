@@ -7,6 +7,7 @@ from typing import Dict, List
 
 import openai
 import tiktoken
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -65,19 +66,27 @@ class AI:
             messages += [{"role": "user", "content": prompt}]
 
         logger.debug(f"Creating a new chat completion: {messages}")
-        response = openai.ChatCompletion.create(
-            messages=messages,
-            stream=True,
-            model=self.model,
-            temperature=self.temperature,
-        )
+        done = False
+        while not done:
+            try:
+                response = openai.ChatCompletion.create(
+                    messages=messages,
+                    stream=True,
+                    model=self.model,
+                    temperature=self.temperature,
+                )
 
-        chat = []
-        for chunk in response:
-            delta = chunk["choices"][0]["delta"]  # type: ignore
-            msg = delta.get("content", "")
-            print(msg, end="")
-            chat.append(msg)
+                chat = []
+                for chunk in response:
+                    delta = chunk["choices"][0]["delta"]  # type: ignore
+                    msg = delta.get("content", "")
+                    print(msg, end="")
+                    chat.append(msg)
+                done = True
+            except Exception as e:
+                print("Error calling OpenAI:", e)
+                print("Retrying in 5 seconds...")
+                time.sleep(5)
         print()
         messages += [{"role": "assistant", "content": "".join(chat)}]
         logger.debug(f"Chat completion finished: {messages}")
