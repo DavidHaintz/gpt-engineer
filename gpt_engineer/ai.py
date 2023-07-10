@@ -4,12 +4,16 @@ import logging
 
 from dataclasses import dataclass
 from typing import Dict, List
+from dotenv import load_dotenv
 
 import openai
 import tiktoken
 import time
+import os
 
 logger = logging.getLogger(__name__)
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 @dataclass
